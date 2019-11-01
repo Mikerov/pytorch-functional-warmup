@@ -7,9 +7,9 @@ This implementation can be used to warm up the learning rate of each parameter g
 The full example can be found in test.py.
 
 Necessary steps:
-1) warm-up function must return a negative value if the current epoch is larger than the number of warm up epochs for this particular parameter group
+1) warm up function must return a negative value if the current epoch is larger than the number of warm up epochs for this particular parameter group
 2) specifiy target learning rates, functions and number of warm up epochs for each parameter group
-3) assign normal scheduler after the warm-up
+3) assign normal scheduler after the warm up
 
 ```python
 from functional_warm_up import FuncLRScheduler
@@ -40,4 +40,4 @@ The below image shows the learning rate warm up of three parameter groups with q
 
 ## Saving the state dictionary
 
-This implementation can save and load the optimizer state dictionary.
+This implementation supports saving and loading of the optimizer and scheduler state dictionaries.
