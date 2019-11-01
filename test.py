@@ -50,7 +50,8 @@ if __name__ == '__main__':
     n_scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100)
     lr_goal = [0.1, 0.3, 0.5]
     fns = [quadratic, linear, quad_square]
-    wu_scheduler = FuncLRScheduler(optimizer=opt, lr_goal=lr_goal, warm_epochs=[30, 10, 70], fns=fns,
+    warm_epochs = [30, 10, 70]
+    wu_scheduler = FuncLRScheduler(optimizer=opt, lr_goal=lr_goal, warm_epochs=warm_epochs, fns=fns,
                                    scheduler_after=n_scheduler)
 
     epochs_before_save = 10
@@ -63,6 +64,9 @@ if __name__ == '__main__':
 
     torch.save(opt.state_dict(), "opt_state.pt")
     opt.load_state_dict(torch.load("opt_state.pt"))
+
+    torch.save(wu_scheduler.state_dict(), "sched_state.pth")
+    wu_scheduler.load_state_dict(torch.load("sched_state.pth"))
 
     for epoch in range(0, 100):
         for param_group in opt.param_groups:

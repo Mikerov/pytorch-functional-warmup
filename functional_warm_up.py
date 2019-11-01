@@ -51,31 +51,17 @@ class FuncLRScheduler(_LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     def state_dict(self):
-        state_dict = {key: value for key, value in self.__dict__.items() if key not in ('optimizer', 'lr_lambdas')}
-        state_dict['lr_lambdas'] = [None] * len(self.lr_goal)
-
-        for idx, fn in enumerate(self.lr_goal):
-            if not isinstance(fn, types.FunctionType):
-                state_dict['lr_lambdas'][idx] = fn.__dict__.copy()
-
-        return state_dict
+        return {key: value for key, value in self.__dict__.items() if (key != 'optimizer') & (key != 'next_scheduler')}
 
     def load_state_dict(self, state_dict: dict) -> None:
-        lr_lambdas = state_dict.pop('lr_lambdas')
         self.__dict__.update(state_dict)
-
-        for idx, fn in enumerate(lr_lambdas):
-            if fn is not None:
-                self.lr_goal[idx].__dict__.update(fn)
 
     def get_lr(self):
         to_return = [func(self.last_epoch, lr_goal, warm_epochs) for func, lr_goal, warm_epochs in
                      zip(self.func, self.lr_goal, self.warm_epochs)]
         for index, item in enumerate(to_return):
             if item < 0:
-                remember = self.next_scheduler.last_epoch
                 self.next_scheduler.last_epoch = self.last_epochs[index] + 1
                 to_return[index] = self.next_scheduler.get_lr()[index]
                 self.last_epochs[index] = self.next_scheduler.last_epoch
-                self.next_scheduler.last_epoch = remember
         return to_return
