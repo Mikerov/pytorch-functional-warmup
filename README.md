@@ -35,7 +35,7 @@ for epoch in range(0, epochs_before_save):
 ```
 
 ## Result
-The below image shows the learning rate warm up of three parameter groups with quadratic, linear and squared functions for 30, 10 and 70 epochs. Afterwards, the cosine annealing is used.
+The figure shows the learning rate warm up of three parameter groups with quadratic, linear and squared functions for 30, 10 and 70 epochs. Afterwards, the cosine annealing is used.
 ![Learning rate vs. epoch](Figure_1.png?raw=true "Three different warm-up scenarios")
 
 ## Saving the state dictionary
