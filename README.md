@@ -27,8 +27,9 @@ n_scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100)
 lr_goal = [0.1, 0.3, 0.5]
 fns = [linear, linear, linear]
 warm_epochs = [30, 10, 70]
+schedulers = [n_scheduler, n_scheduler, n_scheduler]
 wu_scheduler = FuncLRScheduler(optimizer=opt, lr_goal=lr_goal, warm_epochs=warm_epochs, fns=fns,
-                               scheduler_after=n_scheduler)
+                               scheduler_after=n_schedulers)
                                
 for epoch in range(0, epochs_before_save):
     wu_scheduler.step()
