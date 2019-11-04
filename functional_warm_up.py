@@ -5,11 +5,13 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 class FuncLRScheduler(_LRScheduler):
 
-    def __init__(self, optimizer: Optimizer, lr_goal, warm_epochs, last_epoch: int = -1, fns=None,
-                 scheduler_after: _LRScheduler = None):
+    def __init__(self, optimizer: Optimizer, lr_goal, warm_epochs, scheduler_after,
+                 last_epoch: int = -1, fns=None):
         self.optimizer = optimizer
         self.func = []
         self.warm_epochs = []
+        self.next_scheduler = []
+        self.lr_goal = []
         self.last_epoch = last_epoch
         self.last_epochs = [0] * len(warm_epochs)
 
@@ -19,7 +21,7 @@ class FuncLRScheduler(_LRScheduler):
             if isinstance(item, types.FunctionType):
                 self.func.append(item)
             else:
-                raise ValueError("Expected fn to be a function, but got {}".format(type(fns)))
+                raise ValueError("Expected fn to be a function, but got {}".format(type(item)))
         if len(fns) != len(optimizer.param_groups):
             raise ValueError("Expected {} functions, but got {}".format(
                 len(optimizer.param_groups), len(fns)))
@@ -30,23 +32,34 @@ class FuncLRScheduler(_LRScheduler):
             if isinstance(item, int):
                 self.warm_epochs.append(item)
             else:
-                raise ValueError("Expected warm_epochs to be an int, but got {}".format(type(fns)))
+                raise ValueError("Expected warm_epochs to be an int, but got {}".format(type(item)))
         if len(warm_epochs) != len(optimizer.param_groups):
             raise ValueError("Expected {} warm_epochs, but got {}".format(
                 len(optimizer.param_groups), len(warm_epochs)))
 
         if not isinstance(lr_goal, list) and not isinstance(lr_goal, tuple):
             self.lr_goal = [lr_goal] * len(optimizer.param_groups)
+        for item in lr_goal:
+            if isinstance(item, float) | isinstance(item, int):
+                self.lr_goal.append(item)
+            else:
+                raise ValueError("Expected learning rate to be float or int, but got {}".format(type(item)))
         else:
             if len(lr_goal) != len(optimizer.param_groups):
                 raise ValueError("Expected {} lr_lambdas, but got {}".format(
                     len(optimizer.param_groups), len(lr_goal)))
             self.lr_goal = list(lr_goal)
 
-        if isinstance(scheduler_after, _LRScheduler):
-            self.next_scheduler = scheduler_after
-        else:
-            raise ValueError("Expected scheduler_after to be a scheduler, but got {}".format(type(scheduler_after)))
+        if not isinstance(scheduler_after, list) and not isinstance(scheduler_after, tuple):
+            self.next_scheduler = [scheduler_after] * len(optimizer.param_groups)
+        for item in scheduler_after:
+            if isinstance(item, _LRScheduler):
+                self.next_scheduler.append(item)
+            else:
+                raise ValueError("Expected scheduler_after to be a scheduler, but got {}".format(type(item)))
+        if len(scheduler_after) != len(optimizer.param_groups):
+            raise ValueError("Expected {} scheduler_after, but got {}".format(
+                len(optimizer.param_groups), len(scheduler_after)))
 
         super().__init__(optimizer, last_epoch)
 
@@ -61,7 +74,7 @@ class FuncLRScheduler(_LRScheduler):
                      zip(self.func, self.lr_goal, self.warm_epochs)]
         for index, item in enumerate(to_return):
             if item < 0:
-                self.next_scheduler.last_epoch = self.last_epochs[index] + 1
-                to_return[index] = self.next_scheduler.get_lr()[index]
-                self.last_epochs[index] = self.next_scheduler.last_epoch
+                self.next_scheduler[index].last_epoch = self.last_epochs[index] + 1
+                to_return[index] = self.next_scheduler[index].get_lr()[index]
+                self.last_epochs[index] = self.next_scheduler[index].last_epoch
         return to_return

@@ -47,12 +47,15 @@ if __name__ == '__main__':
               {'params': net.conv2.parameters(), 'weight_decay': 0.2},
               {'params': net.conv3.parameters(), 'weight_decay': 0.3}]
     opt = optim.Adam(params=params)
-    n_scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100)
+    n_scheduler_1 = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100)
+    n_scheduler_2 = optim.lr_scheduler.StepLR(opt, gamma=0.5, step_size=10)
+    n_scheduler_3 = optim.lr_scheduler.ExponentialLR(opt, gamma=0.9)
     lr_goal = [0.1, 0.3, 0.5]
     fns = [quadratic, linear, quad_square]
     warm_epochs = [30, 10, 70]
+    schedulers = [n_scheduler_1, n_scheduler_2, n_scheduler_3]
     wu_scheduler = FuncLRScheduler(optimizer=opt, lr_goal=lr_goal, warm_epochs=warm_epochs, fns=fns,
-                                   scheduler_after=n_scheduler)
+                                   scheduler_after=schedulers)
 
     epochs_before_save = 10
     for epoch in range(0, epochs_before_save):
